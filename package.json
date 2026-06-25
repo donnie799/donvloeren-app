@@ -1,0 +1,15 @@
+{
+  "name": "donvloeren-offerte-app",
+  "version": "1.0.0",
+  "description": "Eenvoudige webapp voor Don Vloeren om offertes te maken en om te zetten naar facturen.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
