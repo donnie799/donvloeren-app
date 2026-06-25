@@ -1,0 +1,292 @@
+/* =========================================================================
+   DOCUMENT.CSS — Opmaak van de offerte/factuur pagina zelf
+   =========================================================================
+   Dit zorgt voor de "papieren" uitstraling in zwart/wit/goud, en de
+   @media print regels onderaan zorgen dat "Download als PDF" 
+   (via de browser-printfunctie) er netjes uitziet zonder de zwarte
+   actiebalk en knoppen.
+   ========================================================================= */
+
+.document-pagina {
+  background: #e9e6df;
+  min-height: 100vh;
+  padding: 30px 0 60px;
+}
+
+.actie-balk {
+  max-width: 850px;
+  margin: 0 auto 18px;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.document-vel {
+  max-width: 850px;
+  margin: 0 auto;
+  background: var(--wit);
+  padding: 50px 55px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Header: logo + titel/meta ---------- */
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--goud);
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+}
+
+.document-header .logo {
+  height: 80px;
+}
+
+.header-rechts {
+  text-align: right;
+}
+
+.document-titel {
+  font-size: 36px;
+  color: var(--goud);
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.meta-regel {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+.meta-regel span {
+  color: var(--grijs);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  margin-right: 8px;
+}
+.meta-regel strong {
+  color: var(--zwart);
+}
+
+/* ---------- Adresblok: klant (links) + Van (rechts, crème kaart) ---------- */
+.adres-blok {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 26px;
+}
+
+.klant-adres,
+.van-kaart {
+  flex: 1;
+}
+
+.klant-adres p,
+.van-kaart p {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.van-kaart {
+  background: var(--crème);
+  padding: 18px 22px;
+  border-radius: 4px;
+}
+
+.sectie-titel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--goud);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  color: var(--zwart);
+}
+
+.sectie-titel-goud {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--goud);
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+/* ---------- Intro tekst ---------- */
+.intro-tekst {
+  font-style: italic;
+  color: var(--antraciet);
+  margin: 0 0 14px;
+}
+
+/* ---------- Werkzaamheden tabel ---------- */
+.werk-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.werk-tabel thead th {
+  background: var(--zwart);
+  color: var(--goud-licht);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 10px 12px;
+}
+.werk-tabel td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--lijn);
+  font-size: 14px;
+}
+.werk-tabel tbody tr:nth-child(even) {
+  background: var(--crème);
+}
+.werk-tabel .lege-rij td {
+  color: transparent;
+}
+.werk-tabel .center {
+  text-align: center;
+}
+.werk-tabel .right {
+  text-align: right;
+}
+
+.opmerkingen-klant {
+  margin: 10px 0 20px;
+  font-size: 14px;
+  background: var(--crème);
+  padding: 12px 16px;
+  border-left: 3px solid var(--goud);
+}
+.opmerkingen-klant p {
+  margin: 4px 0 0;
+}
+
+/* ---------- Totalen ---------- */
+.totalen-blok {
+  display: flex;
+  justify-content: flex-end;
+  margin: 18px 0 30px;
+}
+.totalen-tabel {
+  width: 320px;
+}
+.totaal-regel {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.totaal-regel span {
+  color: var(--grijs);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+.totaal-eind {
+  background: var(--zwart);
+  margin-top: 4px;
+}
+.totaal-eind span {
+  color: var(--goud-licht);
+  font-weight: 700;
+}
+.totaal-eind strong {
+  color: var(--goud);
+  font-size: 18px;
+}
+
+/* ---------- Onderkant: voorwaarden + akkoord/betaalgegevens ---------- */
+.onderkant-blok {
+  display: flex;
+  gap: 40px;
+  border-top: 1px solid var(--lijn);
+  padding-top: 24px;
+}
+.voorwaarden-blok,
+.rechts-onder-blok {
+  flex: 1;
+}
+.voorwaarden-lijst {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--antraciet);
+}
+.voorwaarden-lijst li {
+  margin-bottom: 6px;
+}
+
+.betaal-regel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin: 0 0 8px;
+  border-bottom: 1px solid var(--lijn);
+  padding-bottom: 6px;
+}
+.betaal-regel span {
+  color: var(--grijs);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.akkoord-tekst {
+  font-size: 13px;
+  color: var(--antraciet);
+  margin-bottom: 14px;
+}
+.akkoord-form {
+  margin: 0;
+}
+
+/* ---------- Slotzin + footer ---------- */
+.bedank-tekst {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--goud);
+  font-size: 16px;
+  margin: 26px 0 0;
+}
+
+.document-footer {
+  margin-top: 30px;
+  padding-top: 14px;
+  border-top: 2px solid var(--goud);
+  text-align: center;
+  font-size: 11px;
+  color: var(--grijs);
+  line-height: 1.6;
+}
+
+/* =========================================================================
+   PRINT / PDF — wat je ziet als je op "Download als PDF" klikt
+   =========================================================================
+   De browser-print-functie wordt gebruikt om een PDF te maken: kies in het
+   printvenster "Opslaan als PDF". Dit werkt zonder extra software.
+   ========================================================================= */
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .document-pagina {
+    padding: 0;
+    background: white;
+  }
+  .document-vel {
+    box-shadow: none;
+    max-width: 100%;
+    padding: 0;
+  }
+  @page {
+    margin: 14mm;
+  }
+}
