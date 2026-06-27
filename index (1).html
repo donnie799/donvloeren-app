@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nieuwe offerte — Don Vloeren</title>
+  <link rel="stylesheet" href="/css/stijl.css" />
+</head>
+<body class="formulier-pagina">
+
+  <div class="topbalk">
+    <img src="/images/logo.png" alt="Don Vloeren logo" class="logo" />
+    <a href="/overzicht">Overzicht offertes &amp; facturen →</a>
+  </div>
+
+  <div class="formulier-inhoud">
+    <h1>Nieuwe offerte maken</h1>
+    <p class="subtitel">Vul de gegevens van de klant en de klus in. De offerte wordt automatisch berekend en opgemaakt.</p>
+
+    <form id="offerte-formulier" method="POST" action="/offerte/nieuw">
+
+      <!-- ============== KLANTGEGEVENS ============== -->
+      <div class="kaart">
+        <h2>Klantgegevens</h2>
+        <div class="veld-grid">
+          <div class="veld-groep span-2">
+            <label for="klantNaam">Naam</label>
+            <input type="text" id="klantNaam" name="klantNaam" required />
+          </div>
+          <div class="veld-groep span-2">
+            <label for="klantAdres">Adres</label>
+            <input type="text" id="klantAdres" name="klantAdres" required />
+          </div>
+          <div class="veld-groep">
+            <label for="klantPostcode">Postcode</label>
+            <input type="text" id="klantPostcode" name="klantPostcode" required />
+          </div>
+          <div class="veld-groep">
+            <label for="klantPlaats">Plaats</label>
+            <input type="text" id="klantPlaats" name="klantPlaats" required />
+          </div>
+          <div class="veld-groep">
+            <label for="klantTelefoon">Telefoon</label>
+            <input type="tel" id="klantTelefoon" name="klantTelefoon" required />
+          </div>
+          <div class="veld-groep">
+            <label for="klantEmail">E-mail</label>
+            <input type="email" id="klantEmail" name="klantEmail" required />
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== WERKZAAMHEDEN CALCULATIETABEL ============== -->
+      <div class="kaart kaart-tabel">
+        <h2>Werkzaamheden</h2>
+
+        <div class="tabel-scroll-wrapper">
+          <table class="werkzaamheden-tabel" id="werkzaamheden-tabel">
+            <thead>
+              <tr>
+                <th class="kol-werkzaamheid">Werkzaamheid</th>
+                <th class="kol-aantal">Aantal</th>
+                <th class="kol-eenheid">Eenheid</th>
+                <th class="kol-prijs">Prijs p/e</th>
+                <th class="kol-totaal">Totaal</th>
+                <th class="kol-acties"></th>
+              </tr>
+            </thead>
+            <tbody id="werk-rijen-body">
+              <!-- Rijen worden hier door formulier.js ingevoegd -->
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" id="knop-werk-toevoegen" class="knop-extra-toevoegen">+ Werkzaamheid toevoegen</button>
+
+        <!-- Verborgen veld: bevat alle rijen van de tabel als JSON, wordt
+             door formulier.js gevuld vlak voor het versturen van het formulier. -->
+        <input type="hidden" id="werkRegelsJson" name="werkRegelsJson" value="[]" />
+
+        <div class="totalen-samenvatting" id="live-totaal">
+          <div class="totalen-samenvatting-regel">
+            <span>Subtotaal excl. btw</span>
+            <strong id="live-subtotaal">€ 0,00</strong>
+          </div>
+          <div class="totalen-samenvatting-regel">
+            <span>Btw (21%)</span>
+            <strong id="live-btw">€ 0,00</strong>
+          </div>
+          <div class="totalen-samenvatting-regel totalen-samenvatting-eind">
+            <span>Totaal incl. btw</span>
+            <strong id="live-totaal-bedrag">€ 0,00</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== OPMERKINGEN ============== -->
+      <div class="kaart">
+        <h2>Opmerkingen</h2>
+        <div class="veld-groep">
+          <label for="opmerkingen">Planning, bijzonderheden, garantie, afspraken, levertijden, etc.</label>
+          <textarea id="opmerkingen" name="opmerkingen" rows="4" placeholder="Bijv. bijzonderheden over de klus, afspraken, garantietermijn, planning..."></textarea>
+        </div>
+      </div>
+
+      <div class="formulier-acties">
+        <button type="submit" class="btn btn-goud">Offerte genereren →</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Template voor één werkzaamheid-rij in de calculatietabel (wordt door
+       JS gekloond bij het laden van de pagina en bij "+ Werkzaamheid toevoegen") -->
+  <template id="werk-rij-template">
+    <tr class="werk-rij">
+      <td class="kol-werkzaamheid">
+        <input
+          type="text"
+          class="werk-omschrijving"
+          list="werkzaamheden-suggesties"
+          placeholder="Kies of typ een werkzaamheid…"
+          autocomplete="off"
+        />
+      </td>
+      <td class="kol-aantal">
+        <input type="number" class="werk-aantal" min="0" step="0.01" inputmode="decimal" placeholder="0" />
+      </td>
+      <td class="kol-eenheid">
+        <select class="werk-eenheid"></select>
+        <input type="text" class="werk-eenheid-vrij" placeholder="Eenheid…" style="display: none;" />
+      </td>
+      <td class="kol-prijs">
+        <div class="prijs-input-wrapper">
+          <span class="prijs-euroteken">€</span>
+          <input type="number" class="werk-prijs" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
+        </div>
+      </td>
+      <td class="kol-totaal">
+        <span class="werk-regel-totaal">€ 0,00</span>
+      </td>
+      <td class="kol-acties">
+        <button type="button" class="knop-rij-verwijderen" title="Verwijder regel">🗑</button>
+      </td>
+    </tr>
+  </template>
+
+  <!-- Datalist met voorgestelde werkzaamheden (uit config.js) — de gebruiker
+       kan hieruit kiezen, of gewoon vrije tekst typen, beide werkt. -->
+  <datalist id="werkzaamheden-suggesties"></datalist>
+
+  <script src="/js/formulier.js"></script>
+</body>
+</html>
