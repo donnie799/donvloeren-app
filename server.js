@@ -101,3 +101,80 @@ app.post("/offerte/nieuw", (req, res) => {
 
   const vandaag = new Date();
   const geldigTot = new Date(vandaag);
+  geldigTot.setDate(geldigTot.getDate() + config.offerteGeldigheidDagen);
+
+  const volgnummer = storage.volgendNummer("offerte");
+  const offertenummer = `${config.offertenummerVoorvoegsel}${config.startjaar}-${String(
+    volgnummer
+  ).padStart(4, "0")}`;
+
+  const record = {
+    id: crypto.randomUUID(),
+    status: "offerte", // wordt "factuur" zodra klant akkoord geeft
+    offertenummer,
+    aangemaaktOp: vandaag.toISOString(),
+    geldigTot: geldigTot.toISOString(),
+    klant,
+    klus: { soortWerk, aantalM2, prijsPerM2, opmerkingen },
+    berekening,
+    // Factuur-velden worden pas gevuld bij akkoord:
+    factuurnummer: null,
+    factuurdatum: null,
+    vervaldatum: null,
+  };
+
+  storage.voegOfferteToe(record);
+
+  res.redirect(`/offerte/${record.id}`);
+});
+
+// Helper: zet een enkele waarde of array altijd om naar een array
+function toArray(waarde) {
+  if (waarde === undefined || waarde === null) return [];
+  return Array.isArray(waarde) ? waarde : [waarde];
+}
+
+// -------------------------------------------------------------------------
+// OFFERTE OF FACTUUR TONEN
+// -------------------------------------------------------------------------
+app.get("/offerte/:id", (req, res) => {
+  const record = storage.vindOfferteOpId(req.params.id);
+  if (!record) {
+    return res.status(404).send("Offerte niet gevonden.");
+  }
+  const modus = record.status === "factuur" ? "factuur" : "offerte";
+  const html = renderDocumentHtml(record, modus);
+  res.send(html);
+});
+
+// -------------------------------------------------------------------------
+// AKKOORD GEVEN -> offerte wordt automatisch een factuur
+// -------------------------------------------------------------------------
+app.post("/offerte/:id/akkoord", (req, res) => {
+  const record = storage.vindOfferteOpId(req.params.id);
+  if (!record) {
+    return res.status(404).send("Offerte niet gevonden.");
+  }
+
+  if (record.status !== "factuur") {
+    const vandaag = new Date();
+    const vervaldatum = new Date(vandaag);
+    vervaldatum.setDate(vervaldatum.getDate() + config.factuurBetaaltermijnDagen);
+
+    const volgnummer = storage.volgendNummer("factuur");
+    const factuurnummer = `${config.factuurnummerVoorvoegsel}${config.startjaar}-${String(
+      volgnummer
+    ).padStart(4, "0")}`;
+
+    storage.updateOfferte(record.id, {
+      status: "factuur",
+      factuurnummer,
+      factuurdatum: vandaag.toISOString(),
+      vervaldatum: vervaldatum.toISOString(),
+    });
+  }
+
+  res.redirect(`/offerte/${record.id}`);
+});
+
+// Kleine helper om tekst veilig in HTML
