@@ -22,18 +22,28 @@ module.exports = {
   // BTW percentage (21 = 21%)
   btwPercentage: 21,
 
-  // Standaard prijs per m² die in het formulier wordt voorgevuld.
-  // De gebruiker (of jij) kan dit per offerte nog aanpassen in het formulier zelf.
-  standaardPrijsPerM2: 45.0,
+  // Standaard prijs per eenheid die in het formulier wordt voorgevuld
+  // wanneer er nog geen "soort werk" gekozen is.
+  standaardPrijsPerM2: 15.0,
 
-  // Lijst met veelvoorkomende "soort werk" opties in de dropdown.
-  // Voeg hier gerust extra soorten werk toe of verwijder ze.
+  // Lijst met soorten werk, elk met hun eigen prijs en eenheid.
+  // Zodra de gebruiker een soort werk kiest in het formulier, wordt de
+  // prijs en eenheid automatisch ingevuld.
+  //
+  // - naam: wat er in de dropdown en op de offerte/factuur komt te staan
+  // - prijs: de prijs per eenheid, excl. btw
+  // - eenheid: "m²" (vloeroppervlak), "m¹" (strekkende meter, bijv. plinten),
+  //            of "stuk" (bijv. per traptrede)
+  //
+  // Voeg hier gerust extra regels toe, verwijder regels, of pas prijzen aan.
   soortenWerk: [
-    "Egaliseren vloer",
-    "Dekvloer storten",
-    "Vloerverwarming aanleggen",
-    "Renovatie bestaande vloer",
-    "Anders / combinatie",
+    { naam: "Egaliseren 4mm", prijs: 15.0, eenheid: "m²" },
+    { naam: "Egaliseren 8mm", prijs: 30.0, eenheid: "m²" },
+    { naam: "Plinten plaatsen", prijs: 6.0, eenheid: "m¹" },
+    { naam: "PVC stroken plakken", prijs: 10.0, eenheid: "m²" },
+    { naam: "PVC visgraat plakken", prijs: 15.0, eenheid: "m²" },
+    { naam: "PVC tegels plakken", prijs: 12.5, eenheid: "m²" },
+    { naam: "Trap PVC", prijs: 110.0, eenheid: "stuk" },
   ],
 
   // Tekst die onderaan de offerte verschijnt
