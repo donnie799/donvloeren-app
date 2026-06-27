@@ -177,4 +177,55 @@ app.post("/offerte/:id/akkoord", (req, res) => {
   res.redirect(`/offerte/${record.id}`);
 });
 
-// Kleine helper om tekst veilig in HTML
+// Kleine helper om tekst veilig in HTML te tonen (voorkomt opmaakproblemen
+// als een klantnaam toevallig tekens als < of > bevat)
+function escapeHtml(tekst) {
+  if (tekst === undefined || tekst === null) return "";
+  return String(tekst)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// -------------------------------------------------------------------------
+// OVERZICHT van alle offertes/facturen (handig om terug te vinden)
+// -------------------------------------------------------------------------
+app.get("/overzicht", (req, res) => {
+  const lijst = storage.leesAlleOffertes().slice().reverse();
+  const rijenHtml = lijst
+    .map((r) => {
+      const nummer =
+        r.status === "factuur" ? r.factuurnummer : r.offertenummer;
+      const statusLabel = r.status === "factuur" ? "Factuur" : "Offerte";
+      return `<tr>
+        <td>${escapeHtml(nummer)}</td>
+        <td>${escapeHtml(r.klant.naam)}</td>
+        <td>${statusLabel}</td>
+        <td><a href="/offerte/${r.id}">Openen →</a></td>
+      </tr>`;
+    })
+    .join("");
+
+  res.send(`<!DOCTYPE html>
+<html lang="nl"><head><meta charset="UTF-8" />
+<title>Overzicht — ${config.bedrijf.naam}</title>
+<link rel="stylesheet" href="/css/stijl.css" />
+</head>
+<body class="overzicht-pagina">
+<div class="overzicht-vel">
+  <h1>Overzicht offertes &amp; facturen</h1>
+  <a href="/" class="btn btn-outline">&larr; Nieuwe offerte maken</a>
+  <table class="overzicht-tabel">
+    <thead><tr><th>Nummer</th><th>Klant</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rijenHtml || '<tr><td colspan="4">Nog geen offertes.</td></tr>'}</tbody>
+  </table>
+</div>
+</body></html>`);
+});
+
+app.listen(PORT, () => {
+  console.log("==========================================");
+  console.log(` ${config.bedrijf.naam} — Offerte & Factuur app`);
+  console.log(` Server draait op poort ${PORT}`);
+  console.log("==========================================");
+});
