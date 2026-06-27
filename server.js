@@ -100,4 +100,4 @@ app.post("/offerte/nieuw", (req, res) => {
   const berekening = berekenTotalen(regels);
 
   const vandaag = new Date();
-  const geldigTot
+  const geldigTot = new Date(vandaag);
