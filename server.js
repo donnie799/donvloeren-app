@@ -1,14 +1,5 @@
 /* =========================================================================
    SERVER.JS — De hoofdserver van de webapp
-   =========================================================================
-   Dit bestand start de webserver en regelt alle pagina's en acties:
-   - Het formulier tonen (home page)
-   - Een nieuwe offerte aanmaken vanuit het formulier
-   - Een offerte tonen
-   - Een offerte "akkoord" geven -> wordt automatisch een factuur
-   - Een factuur tonen
-
-   Lees README.md voor uitleg hoe je dit lokaal start.
    ========================================================================= */
 
 const express = require("express");
@@ -23,15 +14,13 @@ const { renderDocumentHtml } = require("./document-template");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Maakt het mogelijk om formulierdata (POST) te lezen
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Alles in de map "public" is direct toegankelijk (css, js, logo)
 app.use(express.static(path.join(__dirname, "public")));
 
-// Stuur het bedrijfsconfig + standaardwaarden mee naar de browser,
-// zodat het formulier de juiste dropdown-opties en standaardprijs toont.
+// -------------------------------------------------------------------------
+// CONFIG API — werkzaamheden, eenheden, standaardprijzen
+// -------------------------------------------------------------------------
 app.get("/api/config", (req, res) => {
   res.json({
     soortenWerk: config.soortenWerk,
@@ -42,19 +31,38 @@ app.get("/api/config", (req, res) => {
 });
 
 // -------------------------------------------------------------------------
-// HOME PAGINA — toont het formulier (zie public/index.html + public/js/formulier.js)
+// VOLGEND OFFERTENUMMER — geeft het eerstvolgende automatische nummer terug
+// Wordt door het formulier gebruikt om het standaardnummer alvast in te vullen
+// -------------------------------------------------------------------------
+app.get("/api/volgend-offertenummer", (req, res) => {
+  const teller = storage.leesToeller();
+  const volgendNummer = (teller.offerte || 0) + 1;
+  const nummer = `${config.offertenummerVoorvoegsel}${config.startjaar}-${String(volgendNummer).padStart(4, "0")}`;
+  res.json({ nummer });
+});
+
+// -------------------------------------------------------------------------
+// CHECK OFFERTENUMMER — controleert of een nummer al bestaat
+// -------------------------------------------------------------------------
+app.get("/api/check-offertenummer/:nummer", (req, res) => {
+  const nummer = req.params.nummer.trim();
+  const bestaatAl = storage.offertenummerBestaatAl(nummer);
+  res.json({ bestaatAl });
+});
+
+// -------------------------------------------------------------------------
+// HOME PAGINA
 // -------------------------------------------------------------------------
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // -------------------------------------------------------------------------
-// NIEUWE OFFERTE AANMAKEN vanuit het formulier
+// NIEUWE OFFERTE AANMAKEN
 // -------------------------------------------------------------------------
 app.post("/offerte/nieuw", (req, res) => {
   const body = req.body;
 
-  // Klantgegevens uit het formulier
   const klant = {
     naam: body.klantNaam || "",
     adres: body.klantAdres || "",
@@ -66,13 +74,7 @@ app.post("/offerte/nieuw", (req, res) => {
 
   const opmerkingen = body.opmerkingen || "";
 
-  // ---------------------------------------------------------------------
-  // WERKZAAMHEDEN-TABEL
-  // ---------------------------------------------------------------------
-  // De calculatietabel in het formulier stuurt alle regels als ÉÉN JSON-
-  // veld op (werkRegelsJson), in plaats van losse velden per kolom. Dit is
-  // veel robuuster bij een dynamisch aantal rijen (gebruiker kan willekeurig
-  // veel regels toevoegen/verwijderen) dan losse arrays per kolomnaam.
+  // Werkzaamheden uit de calculatietabel
   let regels = [];
   try {
     const ruweRegels = JSON.parse(body.werkRegelsJson || "[]");
@@ -83,41 +85,53 @@ app.post("/offerte/nieuw", (req, res) => {
         eenheid: regel.eenheid || "stuk",
         prijsPerEenheid: Number(regel.prijsPerEenheid) || 0,
       }))
-      // Sla volledig lege regels over (geen omschrijving en geen prijs/aantal)
       .filter((regel) => regel.omschrijving || regel.aantal || regel.prijsPerEenheid);
   } catch (fout) {
     console.error("Kon werkRegelsJson niet verwerken:", fout);
-    regels = [];
   }
 
   const berekening = berekenTotalen(regels);
+
+  // ---- Offertenummer bepalen ----
+  // Als de gebruiker een handmatig nummer heeft ingevuld, dat gebruiken.
+  // Zo niet (leeg veld), automatisch het volgende nummer genereren.
+  let offertenummer;
+  const handmatigNummer = (body.offertenummer || "").trim();
+
+  if (handmatigNummer) {
+    // Controleer of het nummer al bestaat
+    if (storage.offertenummerBestaatAl(handmatigNummer)) {
+      // Stuur de gebruiker terug naar het formulier met een foutmelding
+      return res.redirect(
+        `/?fout=duplicate&nummer=${encodeURIComponent(handmatigNummer)}`
+      );
+    }
+    offertenummer = handmatigNummer;
+  } else {
+    // Automatisch genereren en de teller ophogen
+    const volgnummer = storage.volgendNummer("offerte");
+    offertenummer = `${config.offertenummerVoorvoegsel}${config.startjaar}-${String(volgnummer).padStart(4, "0")}`;
+  }
 
   const vandaag = new Date();
   const geldigTot = new Date(vandaag);
   geldigTot.setDate(geldigTot.getDate() + config.offerteGeldigheidDagen);
 
-  const volgnummer = storage.volgendNummer("offerte");
-  const offertenummer = `${config.offertenummerVoorvoegsel}${config.startjaar}-${String(
-    volgnummer
-  ).padStart(4, "0")}`;
-
   const record = {
     id: crypto.randomUUID(),
-    status: "offerte", // wordt "factuur" zodra klant akkoord geeft
+    status: "offerte",
     offertenummer,
     aangemaaktOp: vandaag.toISOString(),
     geldigTot: geldigTot.toISOString(),
     klant,
     klus: { opmerkingen },
     berekening,
-    // Factuur-velden worden pas gevuld bij akkoord:
     factuurnummer: null,
     factuurdatum: null,
     vervaldatum: null,
   };
 
   storage.voegOfferteToe(record);
-
   res.redirect(`/offerte/${record.id}`);
 });
 
@@ -126,22 +140,17 @@ app.post("/offerte/nieuw", (req, res) => {
 // -------------------------------------------------------------------------
 app.get("/offerte/:id", (req, res) => {
   const record = storage.vindOfferteOpId(req.params.id);
-  if (!record) {
-    return res.status(404).send("Offerte niet gevonden.");
-  }
+  if (!record) return res.status(404).send("Offerte niet gevonden.");
   const modus = record.status === "factuur" ? "factuur" : "offerte";
-  const html = renderDocumentHtml(record, modus);
-  res.send(html);
+  res.send(renderDocumentHtml(record, modus));
 });
 
 // -------------------------------------------------------------------------
-// AKKOORD GEVEN -> offerte wordt automatisch een factuur
+// AKKOORD GEVEN → factuur
 // -------------------------------------------------------------------------
 app.post("/offerte/:id/akkoord", (req, res) => {
   const record = storage.vindOfferteOpId(req.params.id);
-  if (!record) {
-    return res.status(404).send("Offerte niet gevonden.");
-  }
+  if (!record) return res.status(404).send("Offerte niet gevonden.");
 
   if (record.status !== "factuur") {
     const vandaag = new Date();
@@ -149,9 +158,7 @@ app.post("/offerte/:id/akkoord", (req, res) => {
     vervaldatum.setDate(vervaldatum.getDate() + config.factuurBetaaltermijnDagen);
 
     const volgnummer = storage.volgendNummer("factuur");
-    const factuurnummer = `${config.factuurnummerVoorvoegsel}${config.startjaar}-${String(
-      volgnummer
-    ).padStart(4, "0")}`;
+    const factuurnummer = `${config.factuurnummerVoorvoegsel}${config.startjaar}-${String(volgnummer).padStart(4, "0")}`;
 
     storage.updateOfferte(record.id, {
       status: "factuur",
@@ -164,8 +171,9 @@ app.post("/offerte/:id/akkoord", (req, res) => {
   res.redirect(`/offerte/${record.id}`);
 });
 
-// Kleine helper om tekst veilig in HTML te tonen (voorkomt opmaakproblemen
-// als een klantnaam toevallig tekens als < of > bevat)
+// -------------------------------------------------------------------------
+// OVERZICHT
+// -------------------------------------------------------------------------
 function escapeHtml(tekst) {
   if (tekst === undefined || tekst === null) return "";
   return String(tekst)
@@ -174,15 +182,11 @@ function escapeHtml(tekst) {
     .replace(/>/g, "&gt;");
 }
 
-// -------------------------------------------------------------------------
-// OVERZICHT van alle offertes/facturen (handig om terug te vinden)
-// -------------------------------------------------------------------------
 app.get("/overzicht", (req, res) => {
   const lijst = storage.leesAlleOffertes().slice().reverse();
   const rijenHtml = lijst
     .map((r) => {
-      const nummer =
-        r.status === "factuur" ? r.factuurnummer : r.offertenummer;
+      const nummer = r.status === "factuur" ? r.factuurnummer : r.offertenummer;
       const statusLabel = r.status === "factuur" ? "Factuur" : "Offerte";
       return `<tr>
         <td>${escapeHtml(nummer)}</td>
@@ -197,6 +201,8 @@ app.get("/overzicht", (req, res) => {
 <html lang="nl"><head><meta charset="UTF-8" />
 <title>Overzicht — ${config.bedrijf.naam}</title>
 <link rel="stylesheet" href="/css/stijl.css" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/icons/favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/icons/apple-touch-icon.png" />
 </head>
 <body class="overzicht-pagina">
 <div class="overzicht-vel">

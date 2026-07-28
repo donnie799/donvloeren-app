@@ -1,10 +1,5 @@
 /* =========================================================================
-   STORAGE.JS — Eenvoudige "database" met een JSON-bestand
-   =========================================================================
-   Voor deze MVP gebruiken we GEEN ingewikkelde database, maar simpele
-   JSON-bestanden op de schijf. Dit is prima voor een klein, lokaal
-   gebruikt systeem. Alle offertes/facturen staan in data/offertes.json
-   en de teller voor offerte-/factuurnummers staat in data/teller.json
+   STORAGE.JS — Eenvoudige "database" met JSON-bestanden
    ========================================================================= */
 
 const fs = require("fs");
@@ -14,27 +9,15 @@ const DATA_DIR = path.join(__dirname, "data");
 const OFFERTES_FILE = path.join(DATA_DIR, "offertes.json");
 const TELLER_FILE = path.join(DATA_DIR, "teller.json");
 
-// Zorg dat de data-map en bestanden bestaan
 function zorgDatBestandenBestaan() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(OFFERTES_FILE)) {
-    fs.writeFileSync(OFFERTES_FILE, "[]", "utf-8");
-  }
-  if (!fs.existsSync(TELLER_FILE)) {
-    fs.writeFileSync(
-      TELLER_FILE,
-      JSON.stringify({ offerte: 0, factuur: 0 }, null, 2),
-      "utf-8"
-    );
-  }
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(OFFERTES_FILE)) fs.writeFileSync(OFFERTES_FILE, "[]", "utf-8");
+  if (!fs.existsSync(TELLER_FILE)) fs.writeFileSync(TELLER_FILE, JSON.stringify({ offerte: 0, factuur: 0 }, null, 2), "utf-8");
 }
 
 function leesAlleOffertes() {
   zorgDatBestandenBestaan();
-  const inhoud = fs.readFileSync(OFFERTES_FILE, "utf-8");
-  return JSON.parse(inhoud);
+  return JSON.parse(fs.readFileSync(OFFERTES_FILE, "utf-8"));
 }
 
 function schrijfAlleOffertes(lijst) {
@@ -42,8 +25,7 @@ function schrijfAlleOffertes(lijst) {
 }
 
 function vindOfferteOpId(id) {
-  const lijst = leesAlleOffertes();
-  return lijst.find((o) => o.id === id);
+  return leesAlleOffertes().find((o) => o.id === id);
 }
 
 function voegOfferteToe(offerte) {
@@ -62,7 +44,13 @@ function updateOfferte(id, wijzigingen) {
   return lijst[index];
 }
 
-// Volgende volgnummer ophalen en meteen verhogen ("offerte" of "factuur")
+// Leest de teller zonder hem te verhogen — gebruikt door /api/volgend-offertenummer
+function leesToeller() {
+  zorgDatBestandenBestaan();
+  return JSON.parse(fs.readFileSync(TELLER_FILE, "utf-8"));
+}
+
+// Verhoogt de teller en geeft het nieuwe volgnummer terug
 function volgendNummer(soort) {
   zorgDatBestandenBestaan();
   const teller = JSON.parse(fs.readFileSync(TELLER_FILE, "utf-8"));
@@ -71,10 +59,20 @@ function volgendNummer(soort) {
   return teller[soort];
 }
 
+// Controleert of een offertenummer al in gebruik is (voor duplicate-check)
+function offertenummerBestaatAl(nummer) {
+  const lijst = leesAlleOffertes();
+  return lijst.some(
+    (o) => o.offertenummer === nummer || o.factuurnummer === nummer
+  );
+}
+
 module.exports = {
   leesAlleOffertes,
   vindOfferteOpId,
   voegOfferteToe,
   updateOfferte,
+  leesToeller,
   volgendNummer,
+  offertenummerBestaatAl,
 };
