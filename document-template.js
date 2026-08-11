@@ -100,6 +100,7 @@ function renderDocumentHtml(record, modus) {
         <p>${escapeHtml(klant.postcode)} ${escapeHtml(klant.plaats)}</p>
         <p>${escapeHtml(klant.telefoon)}</p>
         <p>${escapeHtml(klant.email)}</p>
+        ${klant.btwNummer ? `<p>BTW: ${escapeHtml(klant.btwNummer)}</p>` : ""}
       </div>
       <div class="van-kaart">
         <h3 class="sectie-titel-goud">Van</h3>
