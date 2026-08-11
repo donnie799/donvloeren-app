@@ -71,9 +71,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btwVerlegd = document.getElementById("btwVerlegd");
   const liveBtwLabel = document.getElementById("live-btw-label");
   const liveBtwEl = document.getElementById("live-btw");
+  const klantBtwVeld = document.getElementById("klant-btw-veld");
 
   btwVerlegd.addEventListener("change", () => {
     liveBtwLabel.textContent = btwVerlegd.checked ? "Btw (verlegd)" : "Btw (21%)";
+    klantBtwVeld.style.display = btwVerlegd.checked ? "block" : "none";
     werkTotalenBij();
   });
 
