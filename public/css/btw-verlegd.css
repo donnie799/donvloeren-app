@@ -1,0 +1,81 @@
+/* BTW verlegd checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 14px 16px;
+  background: #fffbf0;
+  border: 1.5px solid #e8d89a;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--goud);
+  cursor: pointer;
+}
+.checkbox-tekst strong {
+  display: block;
+  font-size: 15px;
+  color: var(--zwart);
+  margin-bottom: 4px;
+}
+.checkbox-tekst small {
+  display: block;
+  font-size: 13px;
+  color: var(--grijs);
+  line-height: 1.5;
+}
+
+/* BTW verlegd badge op de offerte/factuur */
+.btw-verlegd-badge strong {
+  background: #b8862b;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* BTW verlegd wettelijke melding onderaan de offerte */
+.btw-verlegd-melding {
+  font-size: 12px;
+  color: var(--grijs);
+  font-style: italic;
+  margin: -12px 0 24px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--goud);
+  background: var(--crème);
+}
+
+/* Offertenummer veld */
+.offerte-nummer-rij {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+.offerte-nummer-rij .btn {
+  white-space: nowrap;
+  margin-bottom: 2px;
+  padding: 10px 18px;
+  font-size: 14px;
+}
+.veld-hint { font-size: 13px; margin-top: 6px; min-height: 18px; color: var(--grijs); }
+.hint-ok { color: #2a7a3b; }
+.hint-fout { color: #b03030; }
+input.invoer-fout { border-color: #b03030 !important; box-shadow: 0 0 0 3px rgba(176,48,48,.12) !important; }
+input.invoer-ok { border-color: #2a7a3b !important; box-shadow: 0 0 0 3px rgba(42,122,59,.12) !important; }
+.fout-banner {
+  background: #fff3f3;
+  border: 1.5px solid #e0a0a0;
+  border-left: 4px solid #b03030;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  color: #7a1a1a;
+  font-size: 14.5px;
+}
