@@ -181,24 +181,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   voegWerkRijToe(false);
 
   // ---- Submit: regels verzamelen ----
-  document.getElementById("offerte-formulier").addEventListener("submit", async (ev) => {
+  const offerteFormulier = document.getElementById("offerte-formulier");
+  let formulierWordtVerstuurd = false;
+
+  offerteFormulier.addEventListener("submit", (ev) => {
+    // Altijd meteen blokkeren — we sturen het formulier zelf pas als alles klaar is.
+    ev.preventDefault();
+    if (formulierWordtVerstuurd) return;
+    verwerkEnVerstuur();
+  });
+
+  async function verwerkEnVerstuur() {
+    formulierWordtVerstuurd = true;
+    const submitKnop = offerteFormulier.querySelector('button[type="submit"]');
+    if (submitKnop) submitKnop.disabled = true;
+
     const waarde = nummerInput.value.trim();
     if (waarde) {
       try {
         const r = await fetch(`/api/check-offertenummer/${encodeURIComponent(waarde)}`);
         const d = await r.json();
         if (d.bestaatAl) {
-          ev.preventDefault();
           nummerHint.textContent = "⚠️ Dit nummer bestaat al — kies een ander nummer.";
           nummerHint.className = "veld-hint hint-fout";
           nummerInput.classList.add("invoer-fout");
           nummerInput.focus();
           foutBanner.style.display = "block";
           foutNummer.textContent = waarde;
+          formulierWordtVerstuurd = false;
+          if (submitKnop) submitKnop.disabled = false;
           return;
         }
       } catch (e) {}
     }
+
     const regels = [];
     tabelBody.querySelectorAll(".werk-rij").forEach((rijEl) => {
       const omschrijving = rijEl.querySelector(".werk-omschrijving").value.trim();
@@ -209,5 +225,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       regels.push({ omschrijving, aantal, eenheid, prijsPerEenheid });
     });
     document.getElementById("werkRegelsJson").value = JSON.stringify(regels);
-  });
+
+    // Nu, en pas nu, het formulier daadwerkelijk versturen.
+    offerteFormulier.submit();
+  }
 });
