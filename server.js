@@ -54,6 +54,7 @@ app.post("/offerte/nieuw", async (req, res) => {
       naam: body.klantNaam || "", adres: body.klantAdres || "",
       postcode: body.klantPostcode || "", plaats: body.klantPlaats || "",
       telefoon: body.klantTelefoon || "", email: body.klantEmail || "",
+      btwNummer: (body.klantBtwNummer || "").trim(),
     };
     const opmerkingen = body.opmerkingen || "";
     const btwVerlegd = body.btwVerlegd === "1";
